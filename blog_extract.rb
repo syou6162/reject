@@ -39,6 +39,11 @@ class Blog
     end
     return list
   end
+  def write_meisi_from_blog(list)
+    file = File.open("tmp.csv","w")
+    file.puts list
+    file.close
+  end
   def get_blogs_from_opml()
     opml = "/Users/yasuhisa/Downloads/google-reader-subscriptions.xml"
     doc = Hpricot(open(opml).read)
@@ -62,12 +67,13 @@ class Blog
     end
     return csv
   end
-  def write_blogs_from_opml(csv)
+  def write_blogs_from_opml(obj)
     outfile = File.open("tmp.csv","w")
     CSV::Writer.generate(outfile,"\t"){|writer|
-      csv.split("\n").map{|x|x.split("\t")}.each{|item|
+      obj.map{|x|x.split("\t")}.each{|item|
         writer << [item[0],item[1]]
       }
     }
   end
 end
+

@@ -1,23 +1,16 @@
 
 extract_meisi_from_blog <- function(url){
   ruby <- paste("
-require %q[csv]
 load %q[/Users/yasuhisa/reject/blog_extract.rb]
-Blog.new.extract_meisi_from_blog(%q[",url,"])
-
-outfile = File.open(%q[tmp.csv],%q[w])
-CSV::Writer.generate(outfile,%q[::]){|writer|
-  Blog.new.get_blogs_from_opml.split(%q[\n]).map{|x|x.split(%q[,])}.each{|item|
-    writer << [item[0],item[1]]
-  }
-}
+blog = Blog.new
+blog.write_meisi_from_blog(blog.extract_meisi_from_blog(%q[",url,"]))
 ",sep="")
-  return(system(paste("echo '",ruby,"'"," | /opt/local/bin/ruby ",sep=""),intern=TRUE))
+  system(paste("echo '",ruby,"'"," | /opt/local/bin/ruby ",sep=""))
+  return(scan("tmp.csv",what='character',quiet=TRUE))
 }
 
 get_blogs_from_opml <- function(){
   ruby <- paste("
-require %q[csv]
 load %q[/Users/yasuhisa/reject/blog_extract.rb]
 blog = Blog.new
 blog.write_blogs_from_opml(blog.get_blogs_from_opml)

@@ -60,7 +60,7 @@ class Blog
 
     blogs.reject!{|blog| blog[:url].nil?}
     csv = ""
-    CSV::Writer.generate(csv,fs="\t",rs="\n") do |writer|
+    CSV::Writer.generate(csv,fs="\t") do |writer|
       blogs.each{|blog|
         writer << [blog[:title],blog[:url]]
       }
@@ -71,7 +71,7 @@ class Blog
     outfile = File.open("tmp.csv","w")
     CSV::Writer.generate(outfile,"\t"){|writer|
       obj.map{|x|x.split("\t")}.each{|item|
-        writer << [item[0],item[1]]
+        writer << [item[0],item[1].to_s.chomp]
       }
     }
   end

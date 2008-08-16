@@ -1,12 +1,13 @@
 setwd("/Users/yasuhisa/reject")
 source("./collective.R")
 
+head(read.csv("tmp.csv",sep="\t"))
+
 get_blogs_from_opml()
 
 head(extract_meisi_from_blog("http://d.hatena.ne.jp/syou6162/rss"))
 
-tail(get_blogs_from_opml())
-
+tail(get_blogs_from_opml())$V2
 
 #それぞれのフィードに入っているキーワードの個数のベクトルが入っているリスト
 a <- list()
@@ -37,7 +38,6 @@ hoge$words <- NULL
 names(hoge) <- as.character(get_blogs_from_opml()$V2)[1:20]
 as.character(get_blogs_from_opml()$V2)[1:20]
 
-
 hoge$"http://www.6sese.info/wordpress/index.php/feed"
 head(hoge[,1:3])
 
@@ -62,100 +62,3 @@ tail(sort(hoge[,1]))
 
 summary(hoge[,1])
 summary(hoge[,8])
-
-
-
-python <- "
-print 123
-"
-
-system(paste("echo '",python,"'"," | python ",sep=""),intern=TRUE)
-
-
-http://feeds.feedburner.jp/shebang
-http://www.akiyan.com/blog/
-
-
-
-
-glob2rx("abc.*")
-
-
-
-
-
-
-getwords("hoge hoge fuga")
-
-
-
-
-
-setClass("classifier",
-  representation(
-    getfeatures = "character",
-    fc      = "numeric",
-    cc   = "list"
-  )
-)
-
-
-setGeneric("getAge", function(this) standardGeneric("getAge"))
-setMethod("getAge", "classifier", function(this) { this@age  })
-
-
-setGeneric("incf", function(this) standardGeneric("incf"))
-setMethod("incf","classifier",function(this){this@fc = this@fc +1;this@fc})
-#setMethod("incf","classifier",function(this,f,cat){this@fc$f$cat = this@fc$f$cat +1})
-
-test <- new("classifier", getfeatures="Haruka Amami", fc=list(), cc=list())
-incf(test)
-
-
-
-getwords <- function(doc){
-  unique(strsplit(doc,"\\W")[[1]])
-}
-
-
-
-incf <- function(list,f,cat){
-  
-
-}
-
-
-hoge <- list(
-  python=list(bad=0,good=6),
-  the=list(bad=3,good=3)
-)
-
-hoge$python$bad
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-test@getfeatures
-
-
-
-
-
-

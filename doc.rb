@@ -1,10 +1,7 @@
-require 'rubygems'
-require 'MeCab'
-require 'pp'
-
 def getwords(doc)
   doc.split(" ").uniq
 end
+
 def sampletrain(cl)
   cl.train('Nobody owns the water.','good')
   cl.train('the quick rabbit jumps fences','good')
@@ -109,7 +106,6 @@ class NaiveBayes < Classifier
     end
   end
   def classify(item,default=nil)
-    #本にはdefaltがあるけど、基本的に二値を考えてるので、いいや
     probs = {}
     max = 0.0
     best = nil
@@ -120,7 +116,6 @@ class NaiveBayes < Classifier
         best = cat
       end
     }
-    pp best
     probs.keys.each{|cat|
       next if cat == best
       if probs[cat] * getthresholds(best) > probs[best]

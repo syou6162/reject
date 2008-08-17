@@ -11,6 +11,8 @@ str(d)
 save
 
 
+
+
 save(d, file = "d.Rdata")
 
 
@@ -29,4 +31,6 @@ flags <- c(
 )
 
 apply(add_frag(urls,flags)$flag,1,sum)
+
+
 

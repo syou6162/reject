@@ -3,23 +3,18 @@ source("./collective.R")
 
 urls <- get_blogs_from_opml()
 urls
-names(d)
 d <- get_data_frame_of_words_from_urls(urls)
 cor(d[,1:5])
 symnum(cor(d[,1:5]))
 str(d)
 
+save
 
 
+save(d, file = "d.Rdata")
 
 
-
-
-
-apply(add_frag(urls,flags)$flag,1,sum)
-
-
-
+load("d.Rdata")
 
 
 flags <- c(
@@ -33,5 +28,5 @@ flags <- c(
 "http://www.geekpage.jp/rss.php"
 )
 
-
+apply(add_frag(urls,flags)$flag,1,sum)
 

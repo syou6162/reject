@@ -17,7 +17,7 @@ class Classifier
   attr_accessor :fc
   attr_accessor :cc
   attr_accessor :getfeatures
-  def initialize(getfeatures,filename=nil)
+  def initialize(getfeatures)
     @fc = Hash.new({})
     @cc = Hash.new(0.0) 
     @getfeatures = getfeatures
@@ -52,9 +52,11 @@ class Classifier
     }
     return sum
   end
+  def categories()
+    return @cc.keys
+  end
   def train(item,cat)
-    features = Object.new.method(@getfeatures)
-    features.call(item).each{|f|
+    @getfeatures.call(item).each{|f|
       incf(f,cat)
     }
     incc(cat)
@@ -67,8 +69,64 @@ class Classifier
     end
   end
   def weightdprob(f,cat,prf,weight=1.0,ap=0.5)
-    basicprob = prf(f,cat)
-    #ここから
-    #
+    basicprob = prf.call(f,cat)
+    totals = 0.0
+    categories.each{|c|
+      totals = fcount(f,c)
+    }
+    bp = ((weight * ap) + (totals * basicprob)) / (weight + totals)
+    return bp
+  end
+end
+
+class NaiveBayes < Classifier
+  attr_accessor = :thresholds 
+  def initialize(getfeatures)
+    super(getfeatures)
+    @thresholds = {} 
+  end
+  def docprob(item,cat)
+    features = @getfeatures.call(item)
+    p = 1.0
+    features.each{|f|
+      p *= weightdprob(f,cat,self.method(:fprob))
+    }
+    return p
+  end
+  def prob(item,cat)
+    catprob = catcount(cat) / totalcount()
+    docprob = docprob(item,cat)
+    return docprob * catprob
+  end
+  def setthresholds(cat,t)
+    @thresholds[cat] = t
+  end
+  def getthresholds(cat)
+    if !@thresholds.include?(cat)
+      return 1.0
+    else
+      return @thresholds[cat]
+    end
+  end
+  def classify(item,default=nil)
+    #本にはdefaltがあるけど、基本的に二値を考えてるので、いいや
+    probs = {}
+    max = 0.0
+    best = nil
+    categories.each{|cat|
+      probs[cat] = prob(item,cat)
+      if probs[cat] > max
+        max = probs[cat]
+        best = cat
+      end
+    }
+    pp best
+    probs.keys.each{|cat|
+      next if cat == best
+      if probs[cat] * getthresholds(best) > probs[best]
+        return default
+      end
+    }
+    return best
   end
 end

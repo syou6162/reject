@@ -10,7 +10,15 @@ class Fwrapper
   end
 end
 
-class Node
+class AbstractNode
+  #あったほうが安心した
+  def evaluate()
+  end
+  def display()
+  end
+end
+
+class Node < AbstractNode
   attr_accessor :function
   attr_accessor :name
   attr_accessor :children
@@ -23,9 +31,15 @@ class Node
     results = @children.map{|n| n.evaluate(inp)}
     return @function.call(results)
   end
+  def display(indent=0)
+    puts ' '*indent + @name
+    @children.each{|c|
+      c.display(indent+1)
+    }
+  end
 end
 
-class Paramnode
+class Paramnode < AbstractNode
   attr_accessor :idx
   def initialize(idx)
     @idx = idx
@@ -33,15 +47,21 @@ class Paramnode
   def evaluate(inp)
     return inp[@idx]
   end
+  def display(indent=0)
+    puts ' '*indent + @idx.to_s
+  end
 end
 
-class Constnode
+class Constnode < AbstractNode
   attr_accessor :v
   def initialize(v)
     @v = v
   end
   def evaluate(inp)
     return @v
+  end
+  def display(indent=0)
+    puts ' '*indent + @v.to_s
   end
 end
 
@@ -84,3 +104,15 @@ def exampletree()
   ])
 end
 
+def makerandomtree(pc,maxdepth=4,fpr=0.5,ppr=0.6)
+  include MyMethods
+  if rand < fpr and maxdepth > 0
+    f = Flist[rand(Flist.size)]
+    children = (1..f.childcount).map{makerandomtree(pc,maxdepth-1,fpr,ppr)}
+    return Node.new(f,children)
+  elsif rand < ppr
+    return Paramnode.new(rand(pc-1))
+  else
+    return Constnode.new(rand(10))
+  end
+end

@@ -8,35 +8,26 @@ class Blog
   def initialize
   end
   def extract_meisi_from_blog(url)
+    list = Array.new
     description = ""
-
-    begin
-      doc = Hpricot(open(url).read)
-    rescue => ex
-      exit
-    end
+    doc = Hpricot(open(url).read)
 
     (doc/:item).each {|item|
       description = description + (item/:description).inner_text
     }
+    c = MeCab::Tagger.new(%q[-Ochasen]) 
+    n = c.parseToNode(description) 
 
-    begin 
-      c = MeCab::Tagger.new(%q[-Ochasen]) 
-      n = c.parseToNode(description) 
-
-      list = Array.new
-      while n do
-        f = n.feature.split(/,/)
-        if /名詞/ =~ f[0]
-          if /([0-9A-Za-z_ぁ-んァ-ヴ一-龠]){2,}/ =~ n.surface
-            list.push(n.surface)
-          end
+    while n do
+      f = n.feature.split(/,/)
+      if /名詞/ =~ f[0]
+        if /([0-9A-Za-z_ぁ-んァ-ヴ一-龠]){2,}/ =~ n.surface
+          list.push(n.surface)
         end
-        n = n.next
-      end 
-    rescue
-      exit
-    end
+      end
+      n = n.next
+    end 
+  ensure
     return list
   end
   def write_meisi_from_blog(list)

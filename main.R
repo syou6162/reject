@@ -14,18 +14,15 @@ str(d)
 
 
 
-add_frag <- function(urls,flag){
 
 
-}
-
-
-d$flag <- 0
+apply(add_frag(urls,flags)$flag,1,sum)
 
 
 
 
-(
+
+flags <- c(
 "http://dev.chrisryu.com/atom.xml",
 "http://b.hatena.ne.jp/kkobayashi/atomfeed?tag=R",
 "http://labs.unoh.net/atom.xml",
@@ -33,7 +30,7 @@ d$flag <- 0
 "http://feeds.feedburner.com/Asiajin",
 "http://feeds.feedburner.com/Clmemoaka",
 "http://lifehacking.jp/feed/atom",
-"http://www.geekpage.jp/rss.php",
+"http://www.geekpage.jp/rss.php"
 )
 
 

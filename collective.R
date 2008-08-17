@@ -50,3 +50,12 @@ blog.write_meisi_from_blog(blog.extract_meisi_from_blog(%q[",url,"]))
   d <- d[,as.vector(apply(d,2,function(x){!all(x == 0)}))]
   return(d)
 }
+
+add_frag <- function(urls,flags){
+  if(is.null(urls$flag)){
+    urls$flag <- 0
+  }
+  urls$flag <- mapply(function(x){ifelse(urls$url==x,1,0)},flags)
+  return(urls)
+}
+

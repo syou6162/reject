@@ -1,4 +1,4 @@
-
+require 'pp'
 class Fwrapper
   attr_accessor :function
   attr_accessor :childcount
@@ -8,6 +8,9 @@ class Fwrapper
     @childcount = childcount
     @name = name
   end
+  def deep_copy(function,childcount,name)
+
+  end
 end
 
 class AbstractNode
@@ -15,6 +18,8 @@ class AbstractNode
   def evaluate()
   end
   def display()
+  end
+  def deep_copy()
   end
 end
 
@@ -37,6 +42,25 @@ class Node < AbstractNode
       c.display(indent+1)
     }
   end
+  def deep_copy()
+    #self.childrenにもFwrapperオブジェクトが入る場合があるので、再帰的にdeep copyをやっていく
+    function = self.function
+    childcount =  Flist.map{|x|x.childcount if x.name == self.name}.compact
+    name = self.name
+    pp name
+    if children.class == Fwrapper
+      puts "syou6162!!!!!!!!!!"
+      function_child = name.function
+      childcount_child =  Flist.map{|x|x.childcount if x.name == name.name}.compact
+      name_child = name.name
+      return self.class.new(
+        Fwrapper.new(function,childcount,
+                     Fwrapper.new(function_child,childcount_child,name_child)),
+                     self.children)
+    else
+      return self.class.new(Fwrapper.new(function,childcount,name),self.children)
+    end
+  end
 end
 
 class Paramnode < AbstractNode
@@ -50,6 +74,9 @@ class Paramnode < AbstractNode
   def display(indent=0)
     puts ' '*indent + @idx.to_s
   end
+  def deep_copy()
+    return self.class.new(self.idx)
+  end
 end
 
 class Constnode < AbstractNode
@@ -62,6 +89,9 @@ class Constnode < AbstractNode
   end
   def display(indent=0)
     puts ' '*indent + @v.to_s
+  end
+  def deep_copy()
+    return self.class.new(self.v)
   end
 end
 
@@ -114,5 +144,40 @@ def makerandomtree(pc,maxdepth=4,fpr=0.5,ppr=0.6)
     return Paramnode.new(rand(pc-1))
   else
     return Constnode.new(rand(10))
+  end
+end
+
+def hiddenfunction(x,y)
+  return x**2 + 2*y + 3*x +5
+end
+
+def buidhiddenset()
+  rows = []
+  (1..200).each{|i|
+    x = rand(40)
+    y = rand(40)
+    rows.push([x,y,hiddenfunction(x,y)])
+  }
+  return rows
+end
+
+def scorefunction(tree,s)
+  dif = 0
+  s.each{|data|
+    v = tree.evaluate([data[0],data[1]])
+    dif += (v-data[2]).abs
+  }
+  return dif
+end
+
+def mutate(t,pc,probchange=0.1)
+  if rand < probchange
+    return makerandomtree(pc)
+  else
+    result = t.deep_copy
+    if t.instance_variable_defined?("@children")
+      result.children = t.children.each{|c|mutate(c,pc,probchange)}
+    end
+    return result
   end
 end

@@ -8,8 +8,8 @@ class Fwrapper
     @childcount = childcount
     @name = name
   end
-  def deep_copy(function,childcount,name)
-
+  def deep_copy()
+    return self.class.new(@function,@childcount,@name)
   end
 end
 
@@ -19,46 +19,51 @@ class AbstractNode
   end
   def display()
   end
-  def deep_copy()
-  end
 end
 
 class Node < AbstractNode
+
   attr_accessor :function
   attr_accessor :name
   attr_accessor :children
+
   def initialize(fw,children)
     @function = fw.function
     @name = fw.name
     @children = children
   end
+
   def evaluate(inp)
     results = @children.map{|n| n.evaluate(inp)}
     return @function.call(results)
   end
+
   def display(indent=0)
     puts ' '*indent + @name
     @children.each{|c|
       c.display(indent+1)
     }
   end
+
   def deep_copy()
     #self.childrenにもFwrapperオブジェクトが入る場合があるので、再帰的にdeep copyをやっていく
-    function = self.function
-    childcount =  Flist.map{|x|x.childcount if x.name == self.name}.compact
-    name = self.name
-    pp name
-    if children.class == Fwrapper
-      puts "syou6162!!!!!!!!!!"
-      function_child = name.function
-      childcount_child =  Flist.map{|x|x.childcount if x.name == name.name}.compact
-      name_child = name.name
-      return self.class.new(
-        Fwrapper.new(function,childcount,
-                     Fwrapper.new(function_child,childcount_child,name_child)),
-                     self.children)
+    function = @function
+    childcount =  Flist.map{|x|x.childcount if x.name == @name}.compact
+    name = @name
+    return self.class.new(Fwrapper.new(function,childcount,name).deep_copy,deep_copy_children)
+  end
+
+  private :deep_copy_children
+  def deep_copy_children()
+    if @children[0].class == Node
+      function = @function
+      childcount =  Flist.map{|x|x.childcount if x.name == @name}.compact
+      name = @name
+      return @children.map{|c|
+        self.class.new(Fwrapper.new(function,childcount,name).deep_copy,c.deep_copy_children())
+      }
     else
-      return self.class.new(Fwrapper.new(function,childcount,name),self.children)
+      return Marshal.load(Marshal.dump(@children))
     end
   end
 end
@@ -74,9 +79,6 @@ class Paramnode < AbstractNode
   def display(indent=0)
     puts ' '*indent + @idx.to_s
   end
-  def deep_copy()
-    return self.class.new(self.idx)
-  end
 end
 
 class Constnode < AbstractNode
@@ -89,9 +91,6 @@ class Constnode < AbstractNode
   end
   def display(indent=0)
     puts ' '*indent + @v.to_s
-  end
-  def deep_copy()
-    return self.class.new(self.v)
   end
 end
 

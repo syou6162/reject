@@ -58,20 +58,13 @@ class Node < AbstractNode
   end
 
   def deep_copy_children()
-    t = TRUE
-    @children.each{|x| t = t && (x.class == Node)}
-    if t
-      function = @children.map{|x|x.function}
-      pp function
-      childcount = @children.map{|x|Hash[*Flist.map{|x| [x.name,x.childcount]}.flatten][x.name]}
-      name = @children.map{|x|x.name}
-      return (0..@children.length-1).map{|i|
-        self.class.new(Fwrapper.new(function[i],childcount[i],name[i]).deep_copy,@children[i].deep_copy_children())
-      }
-    else
-      pp @children
-      return Marshal.load(Marshal.dump(@children))
-    end
+    return @children.map{|c|
+      if c.class == Node
+        c.deep_copy
+      else
+        Marshal.load(Marshal.dump(c))
+      end
+    }
   end
 end
 

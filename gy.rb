@@ -179,12 +179,22 @@ def mutate(t,pc,probchange=0.1)
   if rand < probchange
     return makerandomtree(pc)
   else
-    t.display
     result = t.deep_copy
-    result.display
     if t.instance_variable_defined?("@children")
       result.children = t.children.each{|c|mutate(c,pc,probchange)}
     end
     return result
+  end
+end
+
+def crossover(t1,t2,probswap=0.7,top=1)
+  if rand < probswap and !top
+    return t2.deep_copy
+  else
+    result = t1.deep_copy
+    if t1.instance_variable_defined?("@children") && t2.instance_variable_defined?("@children")
+      choice = t2.children[rand(t2.children.length)]
+      result.children = t1.children.map{|c|crossover(c,choice,probswap,0)}
+    end
   end
 end

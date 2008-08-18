@@ -198,3 +198,33 @@ def crossover(t1,t2,probswap=0.7,top=1)
     end
   end
 end
+
+def selectindex()
+  return Math::log(rand/log(pexp))
+end
+
+def evolve(pc,popsize,rankfunction,maxgen=500,mutationrate=0.1,breedingrate=0.4,pexp=0.7,pnew=0.05)
+  population = (1..popsize.map{makerandomtree(pc)})
+  (1..maxgen).each{|i|
+    scores = rankfunction(population)
+    puts scores[0][0]
+    if scores[0][0] == 0
+      breadk
+    end
+    newpop = [scores[0][1],scores[1][1]]
+    while newpop.length < popsize
+      if rand > pnew
+        newpop.push mutate(crossover(scores[selectindex][1],
+                                     scores[selectindex][1],
+                                     probswap=breedingrate),
+                                     pc,probchange=mutationratete)
+      else
+        newpop.push makerandomtree(pc)
+      end
+      population = newpop
+    end
+  }
+  scores[0][1].display
+  return scores[0][1]
+end
+

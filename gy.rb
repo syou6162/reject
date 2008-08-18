@@ -9,15 +9,19 @@ class Fwrapper
     @name = name
   end
   def deep_copy()
-    return self.class.new(@function,@childcount,@name)
+    return self.class.new(Proc.new{@function},
+                          Marshal.load(Marshal.dump(@childcount)),
+                          Marshal.load(Marshal.dump(@name)))
   end
-end
+end 
 
 class AbstractNode
   #あったほうが安心した
   def evaluate()
   end
   def display()
+  end
+  def deep_copy()
   end
 end
 
@@ -53,16 +57,19 @@ class Node < AbstractNode
     return self.class.new(Fwrapper.new(function,childcount,name).deep_copy,deep_copy_children)
   end
 
-  private :deep_copy_children
   def deep_copy_children()
-    if @children[0].class == Node
-      function = @function
-      childcount =  Flist.map{|x|x.childcount if x.name == @name}.compact
-      name = @name
-      return @children.map{|c|
-        self.class.new(Fwrapper.new(function,childcount,name).deep_copy,c.deep_copy_children())
+    t = TRUE
+    @children.each{|x| t = t && (x.class == Node)}
+    if t
+      function = @children.map{|x|x.function}
+      pp function
+      childcount = @children.map{|x|Hash[*Flist.map{|x| [x.name,x.childcount]}.flatten][x.name]}
+      name = @children.map{|x|x.name}
+      return (0..@children.length-1).map{|i|
+        self.class.new(Fwrapper.new(function[i],childcount[i],name[i]).deep_copy,@children[i].deep_copy_children())
       }
     else
+      pp @children
       return Marshal.load(Marshal.dump(@children))
     end
   end
@@ -79,6 +86,9 @@ class Paramnode < AbstractNode
   def display(indent=0)
     puts ' '*indent + @idx.to_s
   end
+  def deep_copy()
+    Marshal.load(Marshal.dump(self.class.new(@idx)))
+  end
 end
 
 class Constnode < AbstractNode
@@ -91,6 +101,9 @@ class Constnode < AbstractNode
   end
   def display(indent=0)
     puts ' '*indent + @v.to_s
+  end
+  def deep_copy()
+    Marshal.load(Marshal.dump(self.class.new(@v)))
   end
 end
 
@@ -173,7 +186,9 @@ def mutate(t,pc,probchange=0.1)
   if rand < probchange
     return makerandomtree(pc)
   else
+    t.display
     result = t.deep_copy
+    result.display
     if t.instance_variable_defined?("@children")
       result.children = t.children.each{|c|mutate(c,pc,probchange)}
     end

@@ -54,7 +54,8 @@ class Node < AbstractNode
     function = @function
     childcount =  Flist.map{|x|x.childcount if x.name == @name}.compact
     name = @name
-    return self.class.new(Fwrapper.new(function,childcount,name).deep_copy,deep_copy_children)
+    return self.class.new(Fwrapper.new(function,childcount,name),deep_copy_children)
+#    return self.class.new(Fwrapper.new(function,childcount,name).deep_copy,deep_copy_children)
   end
 
   def deep_copy_children()
@@ -62,6 +63,7 @@ class Node < AbstractNode
       if c.class == Node
         c.deep_copy
       else
+        #c.deep_copy
         Marshal.load(Marshal.dump(c))
       end
     }
@@ -170,7 +172,7 @@ def scorefunction(tree,s)
   dif = 0
   s.each{|data|
     v = tree.evaluate([data[0],data[1]])
-    dif += (v-data[2]).abs
+    dif += (v - data[2]).abs
   }
   return dif
 end
@@ -188,43 +190,49 @@ def mutate(t,pc,probchange=0.1)
 end
 
 def crossover(t1,t2,probswap=0.7,top=1)
-  if rand < probswap and !top
+  if rand < probswap and top == 0
     return t2.deep_copy
   else
     result = t1.deep_copy
     if t1.instance_variable_defined?("@children") && t2.instance_variable_defined?("@children")
       choice = t2.children[rand(t2.children.length)]
       result.children = t1.children.map{|c|crossover(c,choice,probswap,0)}
+      return result
+    else
+      return result
     end
   end
 end
 
-def selectindex()
-  return Math::log(rand/log(pexp))
+def selectindex(pexp)
+  return rand((Math::log(rand) / Math::log(pexp)).to_i + 1)
 end
 
 def evolve(pc,popsize,rankfunction,maxgen=500,mutationrate=0.1,breedingrate=0.4,pexp=0.7,pnew=0.05)
-  population = (1..popsize.map{makerandomtree(pc)})
-  (1..maxgen).each{|i|
-    scores = rankfunction(population)
-    puts scores[0][0]
-    if scores[0][0] == 0
-      breadk
+  population = (1..popsize).map{makerandomtree(pc)}
+  scores = Array.new(Array.new)
+  (1..maxgen).each{
+    scores = rankfunction.call(population)
+    if scores[0][0] == 0.0
+      break
     end
+    puts scores[0][0]
     newpop = [scores[0][1],scores[1][1]]
     while newpop.length < popsize
       if rand > pnew
-        newpop.push mutate(crossover(scores[selectindex][1],
-                                     scores[selectindex][1],
+        newpop.push mutate(crossover(scores[rand(2)][1],
+                                     scores[rand(2)][1],
                                      probswap=breedingrate),
-                                     pc,probchange=mutationratete)
+                                     pc,probchange=mutationrate)
       else
         newpop.push makerandomtree(pc)
       end
-      population = newpop
     end
+    population = newpop
   }
-  scores[0][1].display
   return scores[0][1]
 end
-
+def getrankfunction(dataset)
+  return lambda{|population| population.map{|t|[scorefunction(t,dataset),t]}.sort{|x,y|x[0] <=> y[0]}}
+  #配列の配列のsortだから注意が必要。最初の要素が同じだと後のでも比較するけど、後のが比較可能でないといけない
+end

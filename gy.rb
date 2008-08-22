@@ -55,7 +55,7 @@ class Node < AbstractNode
     childcount =  Flist.map{|x|x.childcount if x.name == @name}.compact
     name = @name
     return self.class.new(Fwrapper.new(function,childcount,name),deep_copy_children)
-#    return self.class.new(Fwrapper.new(function,childcount,name).deep_copy,deep_copy_children)
+    #    return self.class.new(Fwrapper.new(function,childcount,name).deep_copy,deep_copy_children)
   end
 
   def deep_copy_children()
@@ -63,8 +63,8 @@ class Node < AbstractNode
       if c.class == Node
         c.deep_copy
       else
-        #c.deep_copy
-        Marshal.load(Marshal.dump(c))
+        c.deep_copy
+        #Marshal.load(Marshal.dump(c))
       end
     }
   end
@@ -106,7 +106,6 @@ module MyMethods
   Addw = Fwrapper.new(lambda{|l|l[0]+l[1]},2,'add')
   Subw = Fwrapper.new(lambda{|l|l[0]-l[1]},2,'subtract')
   Mulw = Fwrapper.new(lambda{|l|l[0]*l[1]},2,'multiply')
-
   def iffunc(l)
     if l[0] > 0
       return l[1]
@@ -208,7 +207,27 @@ def selectindex(pexp)
   return rand((Math::log(rand) / Math::log(pexp)).to_i + 1)
 end
 
-def evolve(pc,popsize,rankfunction,maxgen=500,mutationrate=0.1,breedingrate=0.4,pexp=0.7,pnew=0.05)
+def myselectindex(length)
+  sum = 0.0
+  (1..length).each{|i|sum += 1.0 / (i**2)}
+  h = Hash.new
+  tmp = 0
+  (1..length).each{|i|
+    tmp += (1.0 / (i**2)) / sum
+    h[i] = tmp
+  }
+  i = 0
+  r = rand
+  h.sort.map{|x|x[1]}.each_with_index{|item,index|
+    i = index
+    if item > r
+      break
+    end
+  }
+  return i 
+end
+
+def evolve(pc,popsize,rankfunction,maxgen=500,mutationrate=0.2,breedingrate=0.1,pexp=0.7,pnew=0.1)
   population = (1..popsize).map{makerandomtree(pc)}
   scores = Array.new(Array.new)
   (1..maxgen).each{
@@ -220,8 +239,9 @@ def evolve(pc,popsize,rankfunction,maxgen=500,mutationrate=0.1,breedingrate=0.4,
     newpop = [scores[0][1],scores[1][1]]
     while newpop.length < popsize
       if rand > pnew
-        newpop.push mutate(crossover(scores[rand(2)][1],
-                                     scores[rand(2)][1],
+        l = scores.length
+        newpop.push mutate(crossover(scores[myselectindex(l)][1],
+                                     scores[myselectindex(l)][1],
                                      probswap=breedingrate),
                                      pc,probchange=mutationrate)
       else
@@ -230,6 +250,7 @@ def evolve(pc,popsize,rankfunction,maxgen=500,mutationrate=0.1,breedingrate=0.4,
     end
     population = newpop
   }
+  scores[0][1].display
   return scores[0][1]
 end
 def getrankfunction(dataset)

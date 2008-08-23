@@ -94,18 +94,6 @@ exampletree <- function(){
              ))
 }
 
-
-flist[[3]]@childcount
-
-
-seq(length(flist))
-
-mapply(function(x){flist[[x]]@childcount},seq(length(flist)))
-
-
-unlist(sample(flist,1))
-is.numeric(sample(0:3,1))
-
 makerandomtree <- function(pc,maxdepth=4,fpr=0.5,ppr=0.6){
   if((runif(1) < fpr) && (maxdepth > 0)){
     f <- sample(flist,1)[[1]]
@@ -132,9 +120,6 @@ buidhiddenset <- function(){
   return(rows)
 }
 
-
-nrow(buidhiddenset())
-
 scorefunction <- function(tree,s){
   dif <- 0
   for(i in seq(nrow(s))){
@@ -143,9 +128,6 @@ scorefunction <- function(tree,s){
   }
   return(dif)
 }
-
-scorefunction(makerandomtree(2),buidhiddenset())
-
 
 mutate <- function(t,pc,probchange=0.1){
   if(runif(1) < probchange){
@@ -158,24 +140,69 @@ mutate <- function(t,pc,probchange=0.1){
     return(result)
   }
 }
-m
+
+crossover <- function(t1,t2,probswap=0.7,top=1){
+  if((runif(1) < probswap) && (top != 0)){
+    return(t2)
+  }else{
+    result <- t1
+    if((class(t1)=="node") && (class(t2)=="node")){
+      result@children <- unlist(Map(function(c){crossover(c,sample(t2@children,1))},t1@children),recursive=FALSE)
+    }
+    return(result)
+  }
+}
+
+evolve <- function(pc,popsize,rankfunction,maxgen=50,mutationrate=0.1,breedingrate=0.4,pexp=0.7,pnew=0.05){
+  selectindex <- function(){
+    #配列のindexが0にならないように調整
+    return(round(log(runif(1)) / log(pexp)) + 1)
+  }
+  population <- Map(function(x){makerandomtree(pc)},seq(popsize))
+  for(i in seq(maxgen)){
+    scores <- rankfunction(population)
+    cat(scores[[1]][[1]],fill=TRUE)
+    if(scores[[1]][[1]] == 0){
+      break
+    }
+    newpop <- c(scores[[1]][[2]],scores[[2]][[2]])
+    while(length(newpop) < popsize){
+      if(runif(1) > pnew){
+        newpop[[length(newpop) + 1]] <- mutate(crossover(scores[[selectindex()]][[2]],
+                                scores[[selectindex()]][[2]],
+                                probswap=breedingrate),
+                      pc,probchange=mutationrate)
+      }else{
+        newpop[[length(newpop) + 1]] <- makerandomtree(2)
+      }
+    }
+    population <- newpop
+  }
+  display(scores[[1]][[2]])
+  return(scores[[1]][[2]])
+}
+
+getrankfunction <- function(dataset){
+  rankfunction <- function(population){
+    #任意のデータ型を入れられるのは、listのみなので、仕方なくlistでscoreを生成
+    s <- c()
+    p <- list()
+    for(i in seq(length(population))){
+      s[i] <- scorefunction(population[i][[1]],dataset)
+      p[i] <- population[[i]]
+    }
+    l <- c()
+    n <- 1
+    for(i in order(s)){
+      l[[n]] <- c(s[i],p[[i]])
+      n <- n + 1
+    }
+    return(l)
+  }
+  return(rankfunction)
+}
 
 
 
-
-list
-
-buidhiddenset()
-
-m <- makerandomtree(2)
-display(m)
-display(mutate(m,2))
-
-
-evaluate(m,c(1,4))
-
-
-
-display(exampletree())
-
-evaluate(exampletree(),c(5,3))
+rf <- getrankfunction(buidhiddenset())
+evolve(2,500,rf)

@@ -147,12 +147,31 @@ scorefunction <- function(tree,s){
 scorefunction(makerandomtree(2),buidhiddenset())
 
 
+mutate <- function(t,pc,probchange=0.1){
+  if(runif(1) < probchange){
+    return(makerandomtree(2))
+  }else{
+    result <- t
+    if(class(t)=="node"){
+      result@children <- Map(function(c){mutate(c,pc,probchange)},t@children)
+    }
+    return(result)
+  }
+}
+m
+
+
+
+
+list
 
 buidhiddenset()
 
-
 m <- makerandomtree(2)
 display(m)
+display(mutate(m,2))
+
+
 evaluate(m,c(1,4))
 
 

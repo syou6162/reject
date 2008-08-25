@@ -82,17 +82,11 @@ exampletree <- function(){
   return(new("node",fw=ifw,
              children=c(
                new("node",fw=gtw,children=c(
-                                   new("paramnode",idx=0),new("constnode",v=3)
-                                   )),
+                                   new("paramnode",idx=0),new("constnode",v=3))),
                new("node",fw=addw,children=c(
-                                    new("paramnode",idx=1),new("constnode",v=5)
-                                    )),
+                                    new("paramnode",idx=1),new("constnode",v=5))),
                new("node",fw=subw,children=c(
-                                    new("paramnode",idx=1),new("constnode",v=2)
-                                    ))
-               )
-             ))
-}
+                                    new("paramnode",idx=1),new("constnode",v=2))))))}
 
 makerandomtree <- function(pc,maxdepth=4,fpr=0.5,ppr=0.6){
   if((runif(1) < fpr) && (maxdepth > 0)){
@@ -128,6 +122,12 @@ scorefunction <- function(tree,s){
   }
   return(dif)
 }
+
+
+
+abs(3-100)
+
+
 
 mutate <- function(t,pc,probchange=0.1){
   if(runif(1) < probchange){
@@ -185,24 +185,12 @@ evolve <- function(pc,popsize,rankfunction,maxgen=50,mutationrate=0.1,breedingra
 getrankfunction <- function(dataset){
   rankfunction <- function(population){
     #任意のデータ型を入れられるのは、listのみなので、仕方なくlistでscoreを生成
-    s <- c()
-    p <- list()
-    for(i in seq(length(population))){
-      s[i] <- scorefunction(population[i][[1]],dataset)
-      p[i] <- population[[i]]
-    }
-    l <- c()
-    n <- 1
-    for(i in order(s)){
-      l[[n]] <- c(s[i],p[[i]])
-      n <- n + 1
-    }
-    return(l)
+    l <- Map(function(x){c(scorefunction(population[x][[1]],dataset),population[[x]])},seq(length(population)))
+    return(Map(function(x){l[[x]]},order(unlist(lapply(l,function(x){x[[1]]})))))
   }
   return(rankfunction)
 }
 
-
-
 rf <- getrankfunction(buidhiddenset())
-evolve(2,500,rf)
+e <- evolve(2,500,rf)
+rf
